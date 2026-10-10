@@ -28,6 +28,7 @@ Running, chronological log of every significant decision. Each major one also ha
 | 2026-10-10 | D22 | **docker-compose runs on PostgreSQL** via config-selected provider; `EnsureCreated` for PG, `Migrate` for SQLite | Real relational swap without dual migration assemblies | [ADR-0003](adr/0003-data-layer.md) |
 | 2026-10-10 | D23 | **CI quality gate includes `dotnet format --verify-no-changes`** | Enforces style gate per assignment/JD | [ADR-0004](adr/0004-devops-tooling.md) |
 | 2026-10-10 | D24 | **Docker tooling = Colima + Compose plugin (Homebrew)** | Headless, CLI-driven Docker on macOS | — |
+| 2026-10-10 | D25 | **Minimal static UI served from `wwwroot`** (not a SPA) | Usable UI with zero new framework/build; SPA out of scope | [limitations.md](limitations.md) |
 
 ## How to read this
 - **D#** = decision id. **ADR** = full context/alternatives/consequences.

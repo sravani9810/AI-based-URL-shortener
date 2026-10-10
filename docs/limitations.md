@@ -12,7 +12,8 @@
 | Postgres migrations | Compose uses `EnsureCreated()` for Postgres, not migrations | Avoids dual migration assemblies in a prototype (ADR-0003). Production: dedicated Postgres migrations assembly. |
 | Rate limiting | Keyed by **client IP** — coarse behind proxies/NAT, per-instance state | Prototype-appropriate; production keys on API identity and uses a distributed limiter. |
 | Code/alias namespace | Auto codes and custom aliases share one unique column | Unique index guarantees integrity; a rare auto/alias clash is an accepted edge case. |
-| Link management | No update/delete endpoints; no UI | Out of scope; create + redirect + stats cover the core. |
+| Link management | No update/delete endpoints | Out of scope; create + redirect + stats cover the core. |
+| UI | Minimal static page only (no SPA, no auth, no pagination) | A lightweight `wwwroot/index.html`; a full SPA (React/Blazor) was deliberately out of scope. |
 | Security headers/TLS | TLS expected to terminate at ingress; no HSTS/security headers added | Standard for a service behind a gateway; documented, not implemented here. |
 | Open-redirect surface | Targets limited to http/https; no allow/deny-list or malware screening | Validation blocks dangerous schemes; richer screening is future work. |
 

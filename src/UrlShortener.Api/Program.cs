@@ -54,6 +54,11 @@ await using (var scope = app.Services.CreateAsyncScope())
 // --- Pipeline ---
 app.UseExceptionHandler();
 
+// Serve the minimal UI (wwwroot/index.html) at the root. Runs before MVC routing, so the
+// GET /{code} redirect still handles every non-file path.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

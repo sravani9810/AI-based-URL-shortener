@@ -41,5 +41,6 @@ Every AI-assisted task is defined with: **intent · constraints · acceptance cr
 | 2026-10-10 | Phase 5: architecture/setup/testing/limitations/summary docs | E | AI drafted deliverable docs | Engineer verified claims against actual runs; owns summary |
 | 2026-10-10 | Phase 5: Mermaid diagrams + PNG render | G | AI authored diagrams and rendered PNGs | Engineer confirmed diagrams match the implemented flow |
 | 2026-10-10 | Phase 5: README as entry point | E | AI generated full README | Engineer confirmed commands/examples run as written |
+| 2026-10-10 | Phase 6: minimal static UI (wwwroot) | G | AI generated index.html (shorten + stats) + static-file wiring | Engineer verified UI renders and the shorten flow works in-browser |
 
 > This table is appended to as each task is executed. Prompts that were materially important are kept in `docs/prompts/` (added as used).

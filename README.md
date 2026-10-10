@@ -5,6 +5,7 @@ A production-shaped URL shortener built with **.NET 10**, demonstrating AI-assis
 > This repository is an interview assignment graded on **AI-assisted engineering judgment**. The disciplined process — decomposition, defensible decisions, traceability, validation — is documented under [`docs/`](docs/).
 
 ## Features
+- **Minimal web UI** — a static page (served at `/`) to shorten URLs and look up analytics.
 - **Create short links** — auto Base62 codes or **custom aliases**, with optional **expiration**.
 - **Fast redirects** — cache-aside (Redis or in-memory); `302` / `410 Gone` (expired) / `404`.
 - **Click analytics** — event-driven (Kafka or in-memory channel), off the redirect hot path; `GET .../stats` returns totals + daily buckets.
@@ -23,7 +24,8 @@ SQLite + in-memory cache + in-memory events — nothing else to install.
 ```bash
 dotnet run --project src/UrlShortener.Api --no-launch-profile --urls "http://localhost:5080"
 ```
-Swagger: `http://localhost:5080/swagger` · Health: `http://localhost:5080/healthz`
+- **Web UI:** open `http://localhost:5080` in a browser
+- Swagger: `http://localhost:5080/swagger` · Health: `http://localhost:5080/healthz`
 
 ### Run the full stack (Postgres + Redis + Kafka)
 ```bash
