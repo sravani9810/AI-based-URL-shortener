@@ -1,0 +1,35 @@
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant R as RedirectController
+  participant S as UrlService
+  participant Ca as Cache (Redis / in-mem)
+  participant DB as Database
+  participant P as IEventPublisher
+  participant K as Kafka / Channel
+  participant Co as Click Consumer
+
+  C->>R: GET /{code}
+  R->>S: ResolveAsync(code)
+  S->>Ca: get code
+  alt cache hit
+    Ca-->>S: target + expiry
+  else cache miss
+    S->>DB: lookup by code
+    DB-->>S: row (or none)
+    S->>Ca: set (ttl = min 1h, time-to-expiry)
+  end
+  alt found & not expired
+    S-->>R: Found(target)
+    R-->>C: 302 Found
+    R-)P: publish UrlClicked (fire-and-forget)
+    P-)K: enqueue event
+    K-)Co: deliver
+    Co->>DB: insert ClickEvent (off hot path)
+  else expired
+    S-->>R: Expired
+    R-->>C: 410 Gone
+  else unknown
+    S-->>R: NotFound
+    R-->>C: 404 Not Found
+  end

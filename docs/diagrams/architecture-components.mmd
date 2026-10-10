@@ -1,0 +1,35 @@
+flowchart LR
+  client([Client])
+
+  subgraph API["UrlShortener.Api"]
+    uc["UrlsController<br/>POST /api/urls, GET /stats"]
+    rc["RedirectController<br/>GET /{code}"]
+    rl["Rate limiter<br/>(token bucket / IP)"]
+    eh["Exception handler<br/>(ProblemDetails)"]
+  end
+
+  subgraph APP["UrlShortener.Application"]
+    svc["UrlService<br/>validate / resolve / stats"]
+  end
+
+  subgraph INFRA["UrlShortener.Infrastructure"]
+    repo["EF Core repositories"]
+    cache["ICacheStore"]
+    pub["IEventPublisher"]
+    cons["Click consumer<br/>(BackgroundService)"]
+  end
+
+  db[("Relational DB<br/>SQLite / PostgreSQL")]
+  redis[("Redis<br/>(cache, optional)")]
+  kafka[["Kafka topic<br/>url-clicks"]]
+
+  client -->|"POST /api/urls"| rl --> uc
+  client -->|"GET /{code}"| rc
+  uc --> svc
+  rc --> svc
+  svc --> repo
+  svc --> cache
+  repo --> db
+  cache --> redis
+  rc -->|"publish UrlClicked"| pub --> kafka
+  kafka --> cons --> repo

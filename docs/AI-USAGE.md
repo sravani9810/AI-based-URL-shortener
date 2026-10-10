@@ -38,5 +38,8 @@ Every AI-assisted task is defined with: **intent · constraints · acceptance cr
 | 2026-10-10 | Phase 4: docker-compose (PG+Redis+Kafka+API) | E | AI generated compose with healthchecks + depends_on | Engineer chose Postgres and the provider-swap approach |
 | 2026-10-10 | Phase 4: config-selected EF provider | E | AI added Npgsql + provider switch + EnsureCreated/Migrate split | Engineer accepted EnsureCreated-for-PG as documented trade-off |
 | 2026-10-10 | Phase 4: GitHub Actions CI + format gate | G | AI generated restore/format/build/test workflow | Engineer required format verify as a quality gate |
+| 2026-10-10 | Phase 5: architecture/setup/testing/limitations/summary docs | E | AI drafted deliverable docs | Engineer verified claims against actual runs; owns summary |
+| 2026-10-10 | Phase 5: Mermaid diagrams + PNG render | G | AI authored diagrams and rendered PNGs | Engineer confirmed diagrams match the implemented flow |
+| 2026-10-10 | Phase 5: README as entry point | E | AI generated full README | Engineer confirmed commands/examples run as written |
 
 > This table is appended to as each task is executed. Prompts that were materially important are kept in `docs/prompts/` (added as used).
