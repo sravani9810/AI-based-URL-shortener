@@ -40,11 +40,15 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-// --- Apply migrations on startup (prototype convenience; a real deployment runs these as a gated step) ---
+// --- Initialize the database on startup (prototype convenience; a real deployment gates this) ---
+// SQLite has migration history; Postgres (compose) is created directly from the model. See ADR-0003.
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
+    if (db.Database.IsNpgsql())
+        await db.Database.EnsureCreatedAsync();
+    else
+        await db.Database.MigrateAsync();
 }
 
 // --- Pipeline ---

@@ -24,6 +24,10 @@ Running, chronological log of every significant decision. Each major one also ha
 | 2026-10-10 | D18 | **Stats endpoint returns total + last-clicked + per-day buckets** | Chart-ready summary without over-building | [ADR-0008](adr/0008-analytics-and-rate-limiting.md) |
 | 2026-10-10 | D19 | **Rate limiting = token-bucket per client IP (20/min → 429)** on create | Abuse protection allowing controlled bursts | [ADR-0008](adr/0008-analytics-and-rate-limiting.md) |
 | 2026-10-10 | D20 | **Click publishing is best-effort, off the hot path** (Kafka or in-memory channel) | Redirect latency must not depend on analytics infra | [ADR-0002](adr/0002-event-driven-analytics.md) |
+| 2026-10-10 | D21 | **Docker runtime = Debian `aspnet:10.0`** (not Alpine/chiseled) | Confluent.Kafka native librdkafka works out of the box | [ADR-0004](adr/0004-devops-tooling.md) |
+| 2026-10-10 | D22 | **docker-compose runs on PostgreSQL** via config-selected provider; `EnsureCreated` for PG, `Migrate` for SQLite | Real relational swap without dual migration assemblies | [ADR-0003](adr/0003-data-layer.md) |
+| 2026-10-10 | D23 | **CI quality gate includes `dotnet format --verify-no-changes`** | Enforces style gate per assignment/JD | [ADR-0004](adr/0004-devops-tooling.md) |
+| 2026-10-10 | D24 | **Docker tooling = Colima + Compose plugin (Homebrew)** | Headless, CLI-driven Docker on macOS | — |
 
 ## How to read this
 - **D#** = decision id. **ADR** = full context/alternatives/consequences.

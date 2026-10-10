@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+.git/
+.github/
+.vs/
+.vscode/
+.idea/
+docs/
+tests/
+*.md
+010 - Assignment - AI-Proficient Software Engineer.pdf
+.DS_Store

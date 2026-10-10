@@ -34,5 +34,9 @@ Every AI-assisted task is defined with: **intent · constraints · acceptance cr
 | 2026-10-10 | Phase 3: analytics repo + stats endpoint | E | AI generated aggregation + GET /stats | Engineer accepted in-memory aggregation as a documented prototype trade-off |
 | 2026-10-10 | Phase 3: token-bucket rate limiting | G | AI wired ASP.NET rate limiter + 429 test | Engineer chose token-bucket per IP and limits |
 | 2026-10-10 | Phase 3: real Kafka verification | G | AI ran Kafka (KRaft) container, confirmed topic + messages + stats | Engineer verified messages carry no IP and counts match |
+| 2026-10-10 | Phase 4: multi-stage Dockerfile + .dockerignore | G | AI generated layer-cached build + slim runtime image | Engineer chose Debian base for Kafka native deps |
+| 2026-10-10 | Phase 4: docker-compose (PG+Redis+Kafka+API) | E | AI generated compose with healthchecks + depends_on | Engineer chose Postgres and the provider-swap approach |
+| 2026-10-10 | Phase 4: config-selected EF provider | E | AI added Npgsql + provider switch + EnsureCreated/Migrate split | Engineer accepted EnsureCreated-for-PG as documented trade-off |
+| 2026-10-10 | Phase 4: GitHub Actions CI + format gate | G | AI generated restore/format/build/test workflow | Engineer required format verify as a quality gate |
 
 > This table is appended to as each task is executed. Prompts that were materially important are kept in `docs/prompts/` (added as used).
