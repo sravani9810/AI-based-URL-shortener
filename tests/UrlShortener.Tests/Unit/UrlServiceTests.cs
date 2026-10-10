@@ -12,11 +12,12 @@ namespace UrlShortener.Tests.Unit;
 public class UrlServiceTests
 {
     private readonly FakeShortUrlRepository _repo = new();
+    private readonly FakeClickAnalyticsRepository _analytics = new();
     private readonly FakeTimeProvider _clock = new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly UrlService _sut;
 
     public UrlServiceTests() =>
-        _sut = new UrlService(_repo, new Base62CodeGenerator(), new InMemoryCacheStore(), _clock);
+        _sut = new UrlService(_repo, new Base62CodeGenerator(), new InMemoryCacheStore(), _analytics, _clock);
 
     [Fact]
     public async Task CreateAsync_assigns_base62_code_from_id_when_no_alias()
@@ -114,5 +115,26 @@ public class UrlServiceTests
 
         Assert.Equal(ResolveStatus.Found, result.Status);
         Assert.Equal("https://cached.example/", result.Url!.TargetUrl);
+    }
+
+    [Fact]
+    public async Task GetStatsAsync_returns_null_for_unknown_code() =>
+        Assert.Null(await _sut.GetStatsAsync("missing"));
+
+    [Fact]
+    public async Task GetStatsAsync_aggregates_recorded_clicks()
+    {
+        var created = await _sut.CreateAsync(new CreateShortUrlRequest("https://example.com"));
+        await _analytics.AddAsync(new Domain.Entities.ClickEvent
+        { Code = created.Code, ClickedAt = _clock.GetUtcNow() });
+        await _analytics.AddAsync(new Domain.Entities.ClickEvent
+        { Code = created.Code, ClickedAt = _clock.GetUtcNow() });
+
+        var stats = await _sut.GetStatsAsync(created.Code);
+
+        Assert.NotNull(stats);
+        Assert.Equal(2, stats!.TotalClicks);
+        Assert.Single(stats.ClicksPerDay);
+        Assert.Equal(2, stats.ClicksPerDay[0].Count);
     }
 }

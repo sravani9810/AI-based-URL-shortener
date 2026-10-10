@@ -29,5 +29,10 @@ Every AI-assisted task is defined with: **intent · constraints · acceptance cr
 | 2026-10-10 | Phase 2: expiration + 410 handling | E | AI generated ExpiresAt, ResolveResult, validation | Engineer owns 410-vs-404 semantics and future-expiry rule |
 | 2026-10-10 | Phase 2: deterministic time in tests | E | AI wired FakeTimeProvider into the test host | Engineer required no real-time delays in tests (flakiness) |
 | 2026-10-10 | Phase 2: Redis verified via Colima | G | AI ran Redis container, confirmed key+TTL and DB fallback | Engineer confirmed resiliency manually (Redis-down redirect) |
+| 2026-10-10 | Phase 3: ambiguity resolution ("add analytics") | E | AI framed open questions as concrete options | Engineer decided data model, stats shape, rate-limit policy (ADR-0008) |
+| 2026-10-10 | Phase 3: IEventPublisher + in-memory/Kafka | G | AI generated event bus, consumers, producer | Engineer required best-effort publish off the hot path; no raw IP |
+| 2026-10-10 | Phase 3: analytics repo + stats endpoint | E | AI generated aggregation + GET /stats | Engineer accepted in-memory aggregation as a documented prototype trade-off |
+| 2026-10-10 | Phase 3: token-bucket rate limiting | G | AI wired ASP.NET rate limiter + 429 test | Engineer chose token-bucket per IP and limits |
+| 2026-10-10 | Phase 3: real Kafka verification | G | AI ran Kafka (KRaft) container, confirmed topic + messages + stats | Engineer verified messages carry no IP and counts match |
 
 > This table is appended to as each task is executed. Prompts that were materially important are kept in `docs/prompts/` (added as used).

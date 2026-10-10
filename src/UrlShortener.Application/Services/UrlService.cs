@@ -25,17 +25,20 @@ public sealed partial class UrlService : IUrlService
     private readonly IShortUrlRepository _repository;
     private readonly ICodeGenerator _codeGenerator;
     private readonly ICacheStore _cache;
+    private readonly IClickAnalyticsRepository _analytics;
     private readonly TimeProvider _timeProvider;
 
     public UrlService(
         IShortUrlRepository repository,
         ICodeGenerator codeGenerator,
         ICacheStore cache,
+        IClickAnalyticsRepository analytics,
         TimeProvider timeProvider)
     {
         _repository = repository;
         _codeGenerator = codeGenerator;
         _cache = cache;
+        _analytics = analytics;
         _timeProvider = timeProvider;
     }
 
@@ -115,6 +118,21 @@ public sealed partial class UrlService : IUrlService
         }
 
         return ResolveResult.Found(dto);
+    }
+
+    public async Task<UrlStatsDto?> GetStatsAsync(string code, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return null;
+
+        code = code.Trim();
+        var link = await _repository.GetByCodeAsync(code, ct);
+        if (link is null)
+            return null;
+
+        var stats = await _analytics.GetStatsAsync(code, ct);
+        var daily = stats.Daily.Select(d => new DailyClicksDto(d.Date, d.Count)).ToList();
+        return new UrlStatsDto(code, stats.Total, link.CreatedAt, stats.LastClickedAt, daily);
     }
 
     // --- helpers ---

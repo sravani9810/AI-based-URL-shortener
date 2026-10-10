@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<ShortUrl> ShortUrls => Set<ShortUrl>();
+    public DbSet<ClickEvent> ClickEvents => Set<ClickEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,5 +23,12 @@ public class AppDbContext : DbContext
         entity.HasIndex(e => e.Code)
               .IsUnique()
               .HasFilter("\"Code\" IS NOT NULL");
+
+        var click = modelBuilder.Entity<ClickEvent>();
+        click.HasKey(c => c.Id);
+        click.Property(c => c.Code).IsRequired().HasMaxLength(64);
+        click.Property(c => c.Referrer).HasMaxLength(2048);
+        click.Property(c => c.UserAgent).HasMaxLength(512);
+        click.HasIndex(c => c.Code); // analytics queries filter by code
     }
 }

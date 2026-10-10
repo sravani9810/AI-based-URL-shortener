@@ -20,6 +20,10 @@ Running, chronological log of every significant decision. Each major one also ha
 | 2026-10-10 | D14 | **Docker via Colima + Docker CLI** (not Docker Desktop) | Headless, scriptable, no GUI/licence friction; same images/commands | — |
 | 2026-10-10 | D15 | **Expiry = optional absolute `expiresAt` (ISO-8601); expired → HTTP 410 Gone** | Unambiguous input; 410 distinguishes expired from never-existed (404) | [scenarios.md](scenarios.md) |
 | 2026-10-10 | D16 | **Cache failures degrade to DB (never fail the redirect)**; cache TTL = min(1h, time-to-expiry) | Resiliency over strict consistency on the hot path | [ADR-0002](adr/0002-event-driven-analytics.md), [ADR-0003](adr/0003-data-layer.md) |
+| 2026-10-10 | D17 | **Analytics = per-click rows (timestamp, referrer, user-agent), NO raw IP** | PII minimization for finance; enables counts + breakdowns | [ADR-0008](adr/0008-analytics-and-rate-limiting.md) |
+| 2026-10-10 | D18 | **Stats endpoint returns total + last-clicked + per-day buckets** | Chart-ready summary without over-building | [ADR-0008](adr/0008-analytics-and-rate-limiting.md) |
+| 2026-10-10 | D19 | **Rate limiting = token-bucket per client IP (20/min → 429)** on create | Abuse protection allowing controlled bursts | [ADR-0008](adr/0008-analytics-and-rate-limiting.md) |
+| 2026-10-10 | D20 | **Click publishing is best-effort, off the hot path** (Kafka or in-memory channel) | Redirect latency must not depend on analytics infra | [ADR-0002](adr/0002-event-driven-analytics.md) |
 
 ## How to read this
 - **D#** = decision id. **ADR** = full context/alternatives/consequences.

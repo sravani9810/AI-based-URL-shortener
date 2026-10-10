@@ -13,4 +13,7 @@ public interface IUrlService
     /// found, missing, or expired.
     /// </summary>
     Task<ResolveResult> ResolveAsync(string code, CancellationToken ct = default);
+
+    /// <summary>Returns analytics for a code, or null if the code does not exist.</summary>
+    Task<UrlStatsDto?> GetStatsAsync(string code, CancellationToken ct = default);
 }

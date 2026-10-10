@@ -6,13 +6,16 @@ using StackExchange.Redis;
 using UrlShortener.Domain.Interfaces;
 using UrlShortener.Infrastructure.Caching;
 using UrlShortener.Infrastructure.Encoding;
+using UrlShortener.Infrastructure.Events;
 using UrlShortener.Infrastructure.Persistence;
 
 namespace UrlShortener.Infrastructure;
 
-/// <summary>Registers infrastructure services (persistence, caching, encoding) with the DI container.</summary>
+/// <summary>Registers infrastructure services (persistence, caching, events, encoding) with the DI container.</summary>
 public static class DependencyInjection
 {
+    private const string ClickTopic = "url-clicks";
+
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services, IConfiguration configuration)
     {
@@ -21,11 +24,41 @@ public static class DependencyInjection
 
         services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
         services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
+        services.AddScoped<IClickAnalyticsRepository, ClickAnalyticsRepository>();
         services.AddSingleton<ICodeGenerator, Base62CodeGenerator>();
 
         AddCache(services, configuration);
+        AddEvents(services, configuration);
 
         return services;
+    }
+
+    /// <summary>
+    /// Uses a Kafka producer/consumer when bootstrap servers are configured, otherwise an in-process
+    /// channel bus. Either way the redirect publishes <c>UrlClicked</c> and a background consumer
+    /// persists it, so the hot path is decoupled from analytics writes (ADR-0002).
+    /// </summary>
+    private static void AddEvents(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<ClickPersistenceHandler>();
+
+        var kafkaServers = configuration.GetConnectionString("Kafka")
+                           ?? configuration["Kafka:BootstrapServers"];
+
+        if (string.IsNullOrWhiteSpace(kafkaServers))
+        {
+            services.AddSingleton<InMemoryEventBus>();
+            services.AddSingleton<IEventPublisher>(sp => sp.GetRequiredService<InMemoryEventBus>());
+            services.AddHostedService<InMemoryClickConsumer>();
+            return;
+        }
+
+        services.AddSingleton<IEventPublisher>(sp => new KafkaEventPublisher(
+            kafkaServers, ClickTopic, sp.GetRequiredService<ILogger<KafkaEventPublisher>>()));
+        services.AddHostedService(sp => new KafkaClickConsumer(
+            kafkaServers, ClickTopic,
+            sp.GetRequiredService<ClickPersistenceHandler>(),
+            sp.GetRequiredService<ILogger<KafkaClickConsumer>>()));
     }
 
     /// <summary>
