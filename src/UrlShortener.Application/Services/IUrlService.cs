@@ -8,6 +8,9 @@ public interface IUrlService
     /// <summary>Creates a short link, generating a Base62 code or honoring a validated custom alias.</summary>
     Task<ShortUrlDto> CreateAsync(CreateShortUrlRequest request, CancellationToken ct = default);
 
-    /// <summary>Resolves a code to its destination, or null if not found.</summary>
-    Task<ShortUrlDto?> ResolveAsync(string code, CancellationToken ct = default);
+    /// <summary>
+    /// Resolves a code to its destination using a cache-aside read path, reporting whether it was
+    /// found, missing, or expired.
+    /// </summary>
+    Task<ResolveResult> ResolveAsync(string code, CancellationToken ct = default);
 }

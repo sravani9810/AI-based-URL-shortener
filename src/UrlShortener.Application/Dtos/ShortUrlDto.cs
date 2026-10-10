@@ -5,4 +5,10 @@ namespace UrlShortener.Application.Dtos;
 /// <param name="TargetUrl">The destination URL.</param>
 /// <param name="IsCustomAlias">Whether the code was a caller-supplied alias.</param>
 /// <param name="CreatedAt">Creation timestamp (UTC).</param>
-public record ShortUrlDto(string Code, string TargetUrl, bool IsCustomAlias, DateTimeOffset CreatedAt);
+/// <param name="ExpiresAt">Optional expiry (UTC), if one was set.</param>
+public record ShortUrlDto(
+    string Code,
+    string TargetUrl,
+    bool IsCustomAlias,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? ExpiresAt = null);

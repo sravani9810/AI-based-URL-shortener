@@ -14,7 +14,7 @@ public class UrlsController : ControllerBase
 
     public UrlsController(IUrlService service) => _service = service;
 
-    /// <summary>Creates a short link. Supply an optional <c>alias</c> for a custom code.</summary>
+    /// <summary>Creates a short link. Supply an optional <c>alias</c> and/or <c>expiresAt</c>.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -31,15 +31,22 @@ public class UrlsController : ControllerBase
     [HttpGet("{code}")]
     [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<ActionResult<ShortUrlResponse>> GetByCode(string code, CancellationToken ct)
     {
-        var dto = await _service.ResolveAsync(code, ct);
-        return dto is null ? NotFound() : ToResponse(dto);
+        var result = await _service.ResolveAsync(code, ct);
+        return result.Status switch
+        {
+            ResolveStatus.Found => Ok(ToResponse(result.Url!)),
+            ResolveStatus.Expired => StatusCode(StatusCodes.Status410Gone),
+            _ => NotFound()
+        };
     }
 
     private ShortUrlResponse ToResponse(ShortUrlDto dto)
     {
         var shortUrl = $"{Request.Scheme}://{Request.Host}/{dto.Code}";
-        return new ShortUrlResponse(dto.Code, shortUrl, dto.TargetUrl, dto.IsCustomAlias, dto.CreatedAt);
+        return new ShortUrlResponse(
+            dto.Code, shortUrl, dto.TargetUrl, dto.IsCustomAlias, dto.CreatedAt, dto.ExpiresAt);
     }
 }

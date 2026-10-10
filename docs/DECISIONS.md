@@ -17,6 +17,9 @@ Running, chronological log of every significant decision. Each major one also ha
 | 2026-10-10 | D11 | **Phase-wise commits, committed by the engineer** (not AI) | Separate reviewable commit per phase; engineer owns the history | [scenarios.md](scenarios.md) |
 | 2026-10-10 | D12 | **Target framework = .NET 10** (installed toolchain is current LTS) | Original ADR said .NET 8; switched to installed LTS, backports via TargetFramework | [ADR-0001](adr/0001-dotnet-webapi-layered.md) |
 | 2026-10-10 | D13 | **4 projects (Domain/Application/Infrastructure/Api) + Tests** | Compiler-enforced layering & testability over folder convention | [ADR-0001](adr/0001-dotnet-webapi-layered.md) |
+| 2026-10-10 | D14 | **Docker via Colima + Docker CLI** (not Docker Desktop) | Headless, scriptable, no GUI/licence friction; same images/commands | — |
+| 2026-10-10 | D15 | **Expiry = optional absolute `expiresAt` (ISO-8601); expired → HTTP 410 Gone** | Unambiguous input; 410 distinguishes expired from never-existed (404) | [scenarios.md](scenarios.md) |
+| 2026-10-10 | D16 | **Cache failures degrade to DB (never fail the redirect)**; cache TTL = min(1h, time-to-expiry) | Resiliency over strict consistency on the hot path | [ADR-0002](adr/0002-event-driven-analytics.md), [ADR-0003](adr/0003-data-layer.md) |
 
 ## How to read this
 - **D#** = decision id. **ADR** = full context/alternatives/consequences.

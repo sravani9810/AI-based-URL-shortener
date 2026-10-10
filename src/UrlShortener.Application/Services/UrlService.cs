@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using UrlShortener.Application.Dtos;
 using UrlShortener.Application.Exceptions;
@@ -7,14 +8,14 @@ using UrlShortener.Domain.Interfaces;
 namespace UrlShortener.Application.Services;
 
 /// <summary>
-/// Creates and resolves short links. Enforces URL/alias validation, assigns Base62 codes from the
-/// row id for auto links (ADR-0007), and handles custom-alias conflicts.
+/// Creates and resolves short links. Enforces URL/alias/expiry validation, assigns Base62 codes from
+/// the row id for auto links (ADR-0007), resolves through a cache-aside read path, and reports expiry.
 /// </summary>
 public sealed partial class UrlService : IUrlService
 {
     private const int MaxUrlLength = 2048;
+    private static readonly TimeSpan DefaultCacheTtl = TimeSpan.FromHours(1);
 
-    // Aliases must be 3-64 chars of url-safe characters. Also blocks collisions with top-level routes.
     [GeneratedRegex("^[A-Za-z0-9_-]{3,64}$")]
     private static partial Regex AliasPattern();
 
@@ -23,12 +24,18 @@ public sealed partial class UrlService : IUrlService
 
     private readonly IShortUrlRepository _repository;
     private readonly ICodeGenerator _codeGenerator;
+    private readonly ICacheStore _cache;
     private readonly TimeProvider _timeProvider;
 
-    public UrlService(IShortUrlRepository repository, ICodeGenerator codeGenerator, TimeProvider timeProvider)
+    public UrlService(
+        IShortUrlRepository repository,
+        ICodeGenerator codeGenerator,
+        ICacheStore cache,
+        TimeProvider timeProvider)
     {
         _repository = repository;
         _codeGenerator = codeGenerator;
+        _cache = cache;
         _timeProvider = timeProvider;
     }
 
@@ -36,7 +43,9 @@ public sealed partial class UrlService : IUrlService
     {
         var targetUrl = NormalizeAndValidateUrl(request.Url);
         var now = _timeProvider.GetUtcNow();
+        ValidateExpiry(request.ExpiresAt, now);
 
+        ShortUrl entity;
         if (!string.IsNullOrWhiteSpace(request.Alias))
         {
             var alias = request.Alias.Trim();
@@ -44,39 +53,96 @@ public sealed partial class UrlService : IUrlService
             if (await _repository.CodeExistsAsync(alias, ct))
                 throw new ConflictException($"Alias '{alias}' is already in use.");
 
-            var custom = await _repository.AddAsync(new ShortUrl
+            entity = await _repository.AddAsync(new ShortUrl
             {
                 Code = alias,
                 TargetUrl = targetUrl,
                 IsCustomAlias = true,
-                CreatedAt = now
+                CreatedAt = now,
+                ExpiresAt = request.ExpiresAt
+            }, ct);
+        }
+        else
+        {
+            // Auto code: insert first to obtain the monotonic id, then derive the Base62 code.
+            entity = await _repository.AddAsync(new ShortUrl
+            {
+                Code = null,
+                TargetUrl = targetUrl,
+                IsCustomAlias = false,
+                CreatedAt = now,
+                ExpiresAt = request.ExpiresAt
             }, ct);
 
-            return ToDto(custom);
+            entity.Code = _codeGenerator.Encode(entity.Id);
+            await _repository.UpdateAsync(entity, ct);
         }
 
-        // Auto code: insert first to obtain the monotonic id, then derive the Base62 code.
-        var entity = await _repository.AddAsync(new ShortUrl
-        {
-            Code = null,
-            TargetUrl = targetUrl,
-            IsCustomAlias = false,
-            CreatedAt = now
-        }, ct);
-
-        entity.Code = _codeGenerator.Encode(entity.Id);
-        await _repository.UpdateAsync(entity, ct);
-
-        return ToDto(entity);
+        var dto = ToDto(entity);
+        await CacheAsync(dto, now, ct); // write-through so the first redirect is a cache hit
+        return dto;
     }
 
-    public async Task<ShortUrlDto?> ResolveAsync(string code, CancellationToken ct = default)
+    public async Task<ResolveResult> ResolveAsync(string code, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(code))
-            return null;
+            return ResolveResult.NotFound;
 
-        var entity = await _repository.GetByCodeAsync(code.Trim(), ct);
-        return entity is null ? null : ToDto(entity);
+        code = code.Trim();
+        var now = _timeProvider.GetUtcNow();
+        var key = CacheKey(code);
+
+        // Cache-aside read: try cache, then fall back to the database and populate the cache.
+        ShortUrlDto? dto = null;
+        var cached = await _cache.GetAsync(key, ct);
+        if (cached is not null)
+            dto = TryDeserialize(cached);
+
+        if (dto is null)
+        {
+            var entity = await _repository.GetByCodeAsync(code, ct);
+            if (entity is null)
+                return ResolveResult.NotFound;
+
+            dto = ToDto(entity);
+            await CacheAsync(dto, now, ct);
+        }
+
+        if (dto.ExpiresAt is { } expiry && expiry <= now)
+        {
+            await _cache.RemoveAsync(key, ct); // evict the now-expired entry
+            return ResolveResult.Expired(dto);
+        }
+
+        return ResolveResult.Found(dto);
+    }
+
+    // --- helpers ---
+
+    private async Task CacheAsync(ShortUrlDto dto, DateTimeOffset now, CancellationToken ct)
+    {
+        var ttl = ComputeTtl(dto.ExpiresAt, now);
+        if (ttl is { } t && t <= TimeSpan.Zero)
+            return; // already expired; don't cache
+
+        await _cache.SetAsync(CacheKey(dto.Code), JsonSerializer.Serialize(dto), ttl, ct);
+    }
+
+    private static TimeSpan? ComputeTtl(DateTimeOffset? expiresAt, DateTimeOffset now)
+    {
+        if (expiresAt is not { } e)
+            return DefaultCacheTtl;
+
+        var untilExpiry = e - now;
+        return untilExpiry < DefaultCacheTtl ? untilExpiry : DefaultCacheTtl;
+    }
+
+    private static string CacheKey(string code) => $"url:{code}";
+
+    private static ShortUrlDto? TryDeserialize(string json)
+    {
+        try { return JsonSerializer.Deserialize<ShortUrlDto>(json); }
+        catch (JsonException) { return null; } // treat corrupt cache entries as a miss
     }
 
     private static string NormalizeAndValidateUrl(string url)
@@ -106,6 +172,12 @@ public sealed partial class UrlService : IUrlService
             throw new ConflictException($"Alias '{alias}' is reserved.");
     }
 
+    private static void ValidateExpiry(DateTimeOffset? expiresAt, DateTimeOffset now)
+    {
+        if (expiresAt is { } e && e <= now)
+            throw new ValidationException("ExpiresAt must be in the future.");
+    }
+
     private static ShortUrlDto ToDto(ShortUrl e) =>
-        new(e.Code!, e.TargetUrl, e.IsCustomAlias, e.CreatedAt);
+        new(e.Code!, e.TargetUrl, e.IsCustomAlias, e.CreatedAt, e.ExpiresAt);
 }

@@ -6,9 +6,11 @@ namespace UrlShortener.Api.Models;
 /// <param name="TargetUrl">The destination URL.</param>
 /// <param name="IsCustomAlias">Whether the code was a caller-supplied alias.</param>
 /// <param name="CreatedAt">Creation timestamp (UTC).</param>
+/// <param name="ExpiresAt">Optional expiry (UTC), if one was set.</param>
 public record ShortUrlResponse(
     string Code,
     string ShortUrl,
     string TargetUrl,
     bool IsCustomAlias,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? ExpiresAt);

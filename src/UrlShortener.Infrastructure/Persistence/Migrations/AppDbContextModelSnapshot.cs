@@ -30,6 +30,9 @@ namespace UrlShortener.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsCustomAlias")
                         .HasColumnType("INTEGER");
 

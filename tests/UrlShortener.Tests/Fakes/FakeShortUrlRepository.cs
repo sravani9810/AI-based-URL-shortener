@@ -23,4 +23,7 @@ public sealed class FakeShortUrlRepository : IShortUrlRepository
     }
 
     public Task UpdateAsync(ShortUrl shortUrl, CancellationToken ct = default) => Task.CompletedTask;
+
+    /// <summary>Test helper: empties the backing store (e.g. to prove a cache hit).</summary>
+    public void Clear() => _store.Clear();
 }

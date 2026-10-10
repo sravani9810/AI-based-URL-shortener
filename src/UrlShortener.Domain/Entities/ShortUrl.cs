@@ -24,4 +24,10 @@ public class ShortUrl
 
     /// <summary>Creation timestamp (UTC).</summary>
     public DateTimeOffset CreatedAt { get; set; }
+
+    /// <summary>Optional expiry (UTC). When set and in the past, the link is treated as gone (HTTP 410).</summary>
+    public DateTimeOffset? ExpiresAt { get; set; }
+
+    /// <summary>True if the link has an expiry that has already passed relative to <paramref name="now"/>.</summary>
+    public bool IsExpired(DateTimeOffset now) => ExpiresAt is { } e && e <= now;
 }
