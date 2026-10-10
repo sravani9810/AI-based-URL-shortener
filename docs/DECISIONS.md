@@ -15,6 +15,8 @@ Running, chronological log of every significant decision. Each major one also ha
 | 2026-10-10 | D9 | **Short code = sequential ID → Base62** (no collision handling) | Chosen over random/hash for simplicity; enumerability risk accepted & mitigation documented | [ADR-0007](adr/0007-short-code-strategy.md) |
 | 2026-10-10 | D10 | Solution/namespace name = **`UrlShortener`** | Clean, neutral | — |
 | 2026-10-10 | D11 | **Phase-wise commits, committed by the engineer** (not AI) | Separate reviewable commit per phase; engineer owns the history | [scenarios.md](scenarios.md) |
+| 2026-10-10 | D12 | **Target framework = .NET 10** (installed toolchain is current LTS) | Original ADR said .NET 8; switched to installed LTS, backports via TargetFramework | [ADR-0001](adr/0001-dotnet-webapi-layered.md) |
+| 2026-10-10 | D13 | **4 projects (Domain/Application/Infrastructure/Api) + Tests** | Compiler-enforced layering & testability over folder convention | [ADR-0001](adr/0001-dotnet-webapi-layered.md) |
 
 ## How to read this
 - **D#** = decision id. **ADR** = full context/alternatives/consequences.

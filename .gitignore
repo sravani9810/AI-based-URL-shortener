@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+out/
+
+# SQLite database files (generated at runtime)
+*.db
+*.db-shm
+*.db-wal
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.user
+
+# OS
+.DS_Store
+
+# Assignment source PDF (kept locally, not committed)
+010 - Assignment - AI-Proficient Software Engineer.pdf
