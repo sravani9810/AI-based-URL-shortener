@@ -29,6 +29,9 @@ Running, chronological log of every significant decision. Each major one also ha
 | 2026-10-10 | D23 | **CI quality gate includes `dotnet format --verify-no-changes`** | Enforces style gate per assignment/JD | [ADR-0004](adr/0004-devops-tooling.md) |
 | 2026-10-10 | D24 | **Docker tooling = Colima + Compose plugin (Homebrew)** | Headless, CLI-driven Docker on macOS | — |
 | 2026-10-10 | D25 | **Minimal static UI served from `wwwroot`** (not a SPA) | Usable UI with zero new framework/build; SPA out of scope | [limitations.md](limitations.md) |
+| 2026-10-10 | D26 | **Non-enumerable codes via keyed Feistel permutation** (then Base62) | Removes guessability while staying collision-free + reversible | [ADR-0007](adr/0007-short-code-strategy.md) |
+| 2026-10-10 | D27 | **Translate unique-constraint races → HTTP 409** (`DuplicateCodeException`) | Concurrent duplicate-alias requests get 409, not 500 | [ADR-0007](adr/0007-short-code-strategy.md) |
+| 2026-10-10 | D28 | **Per-link codes (no URL dedup)** — same URL → new code | Per-link analytics, independent aliases/expiry, privacy | [ADR-0007](adr/0007-short-code-strategy.md) |
 
 ## How to read this
 - **D#** = decision id. **ADR** = full context/alternatives/consequences.

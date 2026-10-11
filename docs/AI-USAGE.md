@@ -42,5 +42,8 @@ Every AI-assisted task is defined with: **intent · constraints · acceptance cr
 | 2026-10-10 | Phase 5: Mermaid diagrams + PNG render | G | AI authored diagrams and rendered PNGs | Engineer confirmed diagrams match the implemented flow |
 | 2026-10-10 | Phase 5: README as entry point | E | AI generated full README | Engineer confirmed commands/examples run as written |
 | 2026-10-10 | Phase 6: minimal static UI (wwwroot) | G | AI generated index.html (shorten + stats) + static-file wiring | Engineer verified UI renders and the shorten flow works in-browser |
+| 2026-10-10 | Phase 7: Feistel non-enumerable codes | E | AI implemented keyed Feistel decorator + tests | Engineer prompted the hardening after spotting enumerability; verified codes random |
+| 2026-10-10 | Phase 7: alias-race → 409 translation | E | AI added DuplicateCodeException + provider-aware unique-violation mapping | Engineer identified the TOCTOU 500 gap; verified 409 end-to-end |
+| 2026-10-10 | Phase 7: namespace-shadowing bug | E | AI's `Encoding.UTF8` resolved to local namespace (build break) | Engineer-side fix: fully-qualified `System.Text.Encoding` |
 
 > This table is appended to as each task is executed. Prompts that were materially important are kept in `docs/prompts/` (added as used).

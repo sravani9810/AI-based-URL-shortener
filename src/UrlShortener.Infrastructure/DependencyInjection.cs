@@ -32,7 +32,13 @@ public static class DependencyInjection
         });
         services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
         services.AddScoped<IClickAnalyticsRepository, ClickAnalyticsRepository>();
-        services.AddSingleton<ICodeGenerator, Base62CodeGenerator>();
+
+        // Codes = sequential id → keyed Feistel permutation → Base62, so they are non-enumerable
+        // while staying collision-free (ADR-0007). Set ShortCode:Secret per environment.
+        var codeSecret = configuration["ShortCode:Secret"] ?? "url-shortener-dev-secret";
+        services.AddSingleton<Base62CodeGenerator>();
+        services.AddSingleton<ICodeGenerator>(sp =>
+            new FeistelCodeGenerator(sp.GetRequiredService<Base62CodeGenerator>(), codeSecret));
 
         AddCache(services, configuration);
         AddEvents(services, configuration);

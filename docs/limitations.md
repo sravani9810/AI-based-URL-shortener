@@ -5,13 +5,13 @@
 ## Known limitations (prototype scope)
 | Area | Limitation | Rationale / mitigation path |
 |------|-----------|------------------------------|
-| Short codes | **Enumerable** (sequential id → Base62) — codes are guessable by incrementing | Deliberate (ADR-0007). Mitigation: keyed Feistel/Hashids permutation keeps codes collision-free but non-sequential. |
+| Short codes | ~~Enumerable~~ **Mitigated (Phase 7)** — codes are now Feistel-permuted before Base62, so they appear random and are not guessable | Implemented via `FeistelCodeGenerator` (ADR-0007); still collision-free and reversible. |
 | AuthN/Z | **No authentication** — all endpoints are open | Out of scope; rate limiting partially protects create. Production: API keys/OAuth + per-identity limits. |
 | Analytics scale | Stats aggregated **in-memory** from click rows per request | Fine at prototype scale; production would pre-aggregate counters or use a time-series store. |
 | Analytics consistency | Click counts are **eventually consistent** (async consumer) | Accepted trade-off to keep the redirect hot path fast (ADR-0002). |
 | Postgres migrations | Compose uses `EnsureCreated()` for Postgres, not migrations | Avoids dual migration assemblies in a prototype (ADR-0003). Production: dedicated Postgres migrations assembly. |
 | Rate limiting | Keyed by **client IP** — coarse behind proxies/NAT, per-instance state | Prototype-appropriate; production keys on API identity and uses a distributed limiter. |
-| Code/alias namespace | Auto codes and custom aliases share one unique column | Unique index guarantees integrity; a rare auto/alias clash is an accepted edge case. |
+| Code/alias namespace | Auto codes and custom aliases share one unique column | Unique index guarantees integrity; a rare auto/alias clash is an accepted edge case. Concurrent duplicate-alias races are translated to **409** (Phase 7), not 500. |
 | Link management | No update/delete endpoints | Out of scope; create + redirect + stats cover the core. |
 | UI | Minimal static page only (no SPA, no auth, no pagination) | A lightweight `wwwroot/index.html`; a full SPA (React/Blazor) was deliberately out of scope. |
 | Security headers/TLS | TLS expected to terminate at ingress; no HSTS/security headers added | Standard for a service behind a gateway; documented, not implemented here. |

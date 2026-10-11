@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using UrlShortener.Application.Exceptions;
+using UrlShortener.Domain.Exceptions;
 
 namespace UrlShortener.Api.Infrastructure;
 
@@ -21,6 +22,7 @@ public sealed class AppExceptionHandler : IExceptionHandler
         {
             ValidationException => (StatusCodes.Status400BadRequest, "Validation failed", exception.Message),
             ConflictException => (StatusCodes.Status409Conflict, "Conflict", exception.Message),
+            DuplicateCodeException => (StatusCodes.Status409Conflict, "Conflict", exception.Message),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred", (string?)null)
         };
 

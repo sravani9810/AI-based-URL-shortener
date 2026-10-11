@@ -18,5 +18,7 @@ Generate codes by taking the **monotonic primary key** of the stored `ShortUrl` 
 - (−) **Enumerable:** codes are guessable by incrementing — an actor can walk the keyspace and discover others' links. This is a real privacy/security limitation for a financial context.
 - (−) Leaks approximate creation order/volume (business-intelligence leak).
 
-## Risk mitigation (documented, deferred)
-Keep the sequential **storage** key but pass it through a reversible, keyed **Feistel permutation** (or Hashids) before Base62 encoding. This preserves zero-collision + O(1) while making emitted codes appear random and non-enumerable. Recorded as the first hardening step if this moved toward production. Tracked in `docs/limitations.md`.
+## Risk mitigation — IMPLEMENTED (Phase 7)
+The enumerability risk is now mitigated. The sequential **storage** key is kept, but passed through a reversible, keyed **Feistel permutation** over a 48-bit domain before Base62 encoding (`FeistelCodeGenerator` decorating `Base62CodeGenerator`). This preserves zero-collision + O(1) while making emitted codes appear random and non-enumerable (e.g. ids 1,2,3 → `1GAJQWlAa`, `jeVE49ZJ`, `sIo01FvB`). The permutation key comes from config (`ShortCode:Secret`). Verified by unit tests (round-trip, uniqueness across a range, non-sequential) and end-to-end.
+
+**Concurrency note:** code uniqueness is guaranteed by the database (unique id → unique permuted code). A check-then-act race on a *custom alias* is caught at the unique index and translated to **HTTP 409** via `DuplicateCodeException` (see repository), rather than surfacing as a 500.
