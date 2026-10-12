@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>URL Shortener</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --fg: #e2e8f0; --muted: #94a3b8;
+      --accent: #38bdf8; --accent-fg: #06283d; --border: #334155;
+      --ok: #34d399; --err: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg); color: var(--fg); display: flex; justify-content: center; padding: 2rem 1rem;
+    }
+    main { width: 100%; max-width: 620px; }
+    h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
+    p.sub { color: var(--muted); margin: 0 0 1.5rem; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .card h2 { font-size: 1rem; margin: 0 0 1rem; color: var(--accent); }
+    label { display: block; font-size: .8rem; color: var(--muted); margin: .6rem 0 .25rem; }
+    input {
+      width: 100%; padding: .6rem .7rem; border-radius: 8px; border: 1px solid var(--border);
+      background: #0b1220; color: var(--fg); font-size: .95rem;
+    }
+    input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+    .row { display: flex; gap: .75rem; }
+    .row > div { flex: 1; }
+    button {
+      margin-top: 1rem; width: 100%; padding: .7rem; border: none; border-radius: 8px;
+      background: var(--accent); color: var(--accent-fg); font-weight: 600; font-size: .95rem; cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    .result { margin-top: 1rem; padding: .75rem; border-radius: 8px; background: #0b1220; border: 1px solid var(--border); display: none; }
+    .result.show { display: block; }
+    .result a { color: var(--accent); word-break: break-all; }
+    .result .copy { margin-top: .5rem; width: auto; padding: .35rem .7rem; font-size: .8rem; }
+    .msg { font-size: .85rem; margin-top: .5rem; }
+    .msg.err { color: var(--err); }
+    .msg.ok { color: var(--ok); }
+    pre { background: #0b1220; border: 1px solid var(--border); border-radius: 8px; padding: .75rem; overflow:auto; font-size: .82rem; margin:.75rem 0 0; }
+    footer { color: var(--muted); font-size: .8rem; text-align: center; margin-top: 1rem; }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>🔗 URL Shortener</h1>
+    <p class="sub">Create short links and look up their click analytics.</p>
+
+    <section class="card">
+      <h2>Shorten a URL</h2>
+      <label for="url">Destination URL *</label>
+      <input id="url" type="url" placeholder="https://www.example.com/very/long/path" />
+      <div class="row">
+        <div>
+          <label for="alias">Custom alias (optional)</label>
+          <input id="alias" type="text" placeholder="my-link" />
+        </div>
+        <div>
+          <label for="expiry">Expires at (optional)</label>
+          <input id="expiry" type="datetime-local" />
+        </div>
+      </div>
+      <button id="shortenBtn">Shorten</button>
+      <div id="result" class="result"></div>
+      <div id="shortenMsg" class="msg"></div>
+    </section>
+
+    <section class="card">
+      <h2>Look up analytics</h2>
+      <label for="statsCode">Short code</label>
+      <input id="statsCode" type="text" placeholder="demo" />
+      <button id="statsBtn" class="secondary">Get stats</button>
+      <div id="statsOut"></div>
+    </section>
+
+    <footer>API docs: <a href="/swagger" target="_blank" rel="noopener">Swagger</a></footer>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    async function shorten() {
+      const url = $("url").value.trim();
+      const alias = $("alias").value.trim();
+      const expiry = $("expiry").value;
+      const msg = $("shortenMsg");
+      const result = $("result");
+      msg.textContent = ""; msg.className = "msg"; result.className = "result";
+
+      if (!url) { msg.textContent = "Please enter a URL."; msg.classList.add("err"); return; }
+
+      const body = { url };
+      if (alias) body.alias = alias;
+      if (expiry) body.expiresAt = new Date(expiry).toISOString();
+
+      try {
+        const res = await fetch("/api/urls", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          msg.textContent = (data.detail || data.title || `Error ${res.status}`);
+          msg.classList.add("err");
+          return;
+        }
+        result.innerHTML =
+          `<div><a href="${data.shortUrl}" target="_blank" rel="noopener">${data.shortUrl}</a></div>` +
+          `<button class="copy" data-link="${data.shortUrl}">Copy</button>`;
+        result.classList.add("show");
+        result.querySelector(".copy").addEventListener("click", (e) => {
+          navigator.clipboard.writeText(e.target.dataset.link);
+          e.target.textContent = "Copied!";
+          setTimeout(() => (e.target.textContent = "Copy"), 1500);
+        });
+      } catch (err) {
+        msg.textContent = "Network error: " + err.message;
+        msg.classList.add("err");
+      }
+    }
+
+    async function getStats() {
+      const code = $("statsCode").value.trim();
+      const out = $("statsOut");
+      out.innerHTML = "";
+      if (!code) { out.innerHTML = `<div class="msg err">Enter a short code.</div>`; return; }
+
+      try {
+        const res = await fetch(`/api/urls/${encodeURIComponent(code)}/stats`);
+        if (res.status === 404) { out.innerHTML = `<div class="msg err">No link found for "${code}".</div>`; return; }
+        if (!res.ok) { out.innerHTML = `<div class="msg err">Error ${res.status}.</div>`; return; }
+        const s = await res.json();
+        const daily = (s.clicksPerDay || []).map(d => `${d.date}: ${d.count}`).join("\n") || "(no clicks yet)";
+        out.innerHTML =
+          `<div class="msg ok">Total clicks: ${s.totalClicks}` +
+          (s.lastClickedAt ? ` · last: ${new Date(s.lastClickedAt).toLocaleString()}` : "") +
+          `</div><pre>${daily}</pre>`;
+      } catch (err) {
+        out.innerHTML = `<div class="msg err">Network error: ${err.message}</div>`;
+      }
+    }
+
+    $("shortenBtn").addEventListener("click", shorten);
+    $("statsBtn").addEventListener("click", getStats);
+    $("url").addEventListener("keydown", (e) => { if (e.key === "Enter") shorten(); });
+  </script>
+</body>
+</html>
