@@ -4,6 +4,8 @@ A production-shaped URL shortener built with **.NET 10**, demonstrating AI-assis
 
 > This repository is an interview assignment graded on **AI-assisted engineering judgment**. The disciplined process — decomposition, defensible decisions, traceability, validation — is documented under [`docs/`](docs/).
 
+> 🚀 **Reviewers:** see **[docs/RUNNING.md](docs/RUNNING.md)** for step-by-step run instructions. Fastest path: `dotnet run --project src/UrlShortener.Api --no-launch-profile --urls "http://localhost:5080"` then open http://localhost:5080.
+
 ## Features
 - **Minimal web UI** — a static page (served at `/`) to shorten URLs and look up analytics.
 - **Create short links** — auto Base62 codes or **custom aliases**, with optional **expiration**.

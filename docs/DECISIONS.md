@@ -32,6 +32,12 @@ Running, chronological log of every significant decision. Each major one also ha
 | 2026-10-10 | D26 | **Non-enumerable codes via keyed Feistel permutation** (then Base62) | Removes guessability while staying collision-free + reversible | [ADR-0007](adr/0007-short-code-strategy.md) |
 | 2026-10-10 | D27 | **Translate unique-constraint races → HTTP 409** (`DuplicateCodeException`) | Concurrent duplicate-alias requests get 409, not 500 | [ADR-0007](adr/0007-short-code-strategy.md) |
 | 2026-10-10 | D28 | **Per-link codes (no URL dedup)** — same URL → new code | Per-link analytics, independent aliases/expiry, privacy | [ADR-0007](adr/0007-short-code-strategy.md) |
+| 2026-10-11 | D29 | **Self-contained single-file executables per OS** (osx-arm64/x64, win-x64, linux-x64) | Runs on any desktop with no .NET install; zero infra via in-memory fallbacks | [RUNNING.md](RUNNING.md) |
+| 2026-10-11 | D30 | **UI embedded in the assembly; auto-open browser on launch** | True single-file deployment; app-like UX | — |
+| 2026-10-11 | D31 | **Default SQLite DB in per-user app-data folder** | Writable/persistent path for a double-clicked exe | — |
+| 2026-10-11 | D32 | **Desktop exe auto-selects a free port if 5080 is busy** | No hard crash on port conflict; opens browser to the actual URL | — |
+| 2026-10-11 | D33 | **Standalone Docker image** (SQLite + in-memory, port 8080, `/data` volume) | One `docker run` works anywhere, no external services | [RUNNING.md](RUNNING.md) |
+| 2026-10-11 | D34 | **Multi-arch image (amd64+arm64) via buildx + portable tarball** | Runs natively on Intel/ARM hosts; tarball for offline transfer | [RUNNING.md](RUNNING.md) |
 
 ## How to read this
 - **D#** = decision id. **ADR** = full context/alternatives/consequences.

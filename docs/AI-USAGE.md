@@ -45,5 +45,11 @@ Every AI-assisted task is defined with: **intent · constraints · acceptance cr
 | 2026-10-10 | Phase 7: Feistel non-enumerable codes | E | AI implemented keyed Feistel decorator + tests | Engineer prompted the hardening after spotting enumerability; verified codes random |
 | 2026-10-10 | Phase 7: alias-race → 409 translation | E | AI added DuplicateCodeException + provider-aware unique-violation mapping | Engineer identified the TOCTOU 500 gap; verified 409 end-to-end |
 | 2026-10-10 | Phase 7: namespace-shadowing bug | E | AI's `Encoding.UTF8` resolved to local namespace (build break) | Engineer-side fix: fully-qualified `System.Text.Encoding` |
+| 2026-10-11 | Phase 8: self-contained single-file executables | G | AI added publish script + browser auto-open + embedded UI | Engineer verified standalone run from an isolated folder |
+| 2026-10-11 | Phase 8: wwwroot-not-bundled catch | E | AI initially shipped UI as a loose folder | Engineer required a true single file → embedded the UI as a resource |
+| 2026-10-11 | Phase 8: writable DB path | E | AI moved default SQLite to per-user app-data | Engineer flagged that a double-clicked exe may have a read-only cwd |
+| 2026-10-11 | Phase 8: port-in-use crash | E | Exe crashed when 5080 was taken (observed at runtime) | Engineer required graceful fallback → app now picks a free port and opens the actual URL |
+| 2026-10-11 | Phase 9: standalone + multi-arch Docker image | E | AI added writable /data path, build-image.sh, multi-arch via buildx, tarball | Engineer verified single `docker run` works and the tarball loads |
+| 2026-10-11 | Phase 9: multi-arch emulation crash | E | First multi-arch build crashed (amd64 .NET SDK under QEMU, exit 134) | Engineer-directed fix: cross-compile via `--platform=$BUILDPLATFORM` + `-a $TARGETARCH` (no emulation); both arches then built |
 
 > This table is appended to as each task is executed. Prompts that were materially important are kept in `docs/prompts/` (added as used).

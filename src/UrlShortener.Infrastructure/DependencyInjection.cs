@@ -20,15 +20,14 @@ public static class DependencyInjection
         this IServiceCollection services, IConfiguration configuration)
     {
         var provider = configuration["Database:Provider"] ?? "Sqlite";
-        var connectionString = configuration.GetConnectionString("Default")
-                               ?? "Data Source=urlshortener.db";
+        var connectionString = configuration.GetConnectionString("Default");
 
         services.AddDbContext<AppDbContext>(options =>
         {
             if (provider.Equals("Postgres", StringComparison.OrdinalIgnoreCase))
                 options.UseNpgsql(connectionString);
             else
-                options.UseSqlite(connectionString);
+                options.UseSqlite(connectionString ?? DefaultSqliteConnectionString());
         });
         services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
         services.AddScoped<IClickAnalyticsRepository, ClickAnalyticsRepository>();
@@ -72,6 +71,19 @@ public static class DependencyInjection
             kafkaServers, ClickTopic,
             sp.GetRequiredService<ClickPersistenceHandler>(),
             sp.GetRequiredService<ILogger<KafkaClickConsumer>>()));
+    }
+
+    /// <summary>
+    /// Default SQLite location when nothing is configured: a per-user app-data folder, so a
+    /// double-clicked desktop executable always has a writable, persistent database path.
+    /// </summary>
+    private static string DefaultSqliteConnectionString()
+    {
+        var dir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "UrlShortener");
+        Directory.CreateDirectory(dir);
+        return $"Data Source={Path.Combine(dir, "urlshortener.db")}";
     }
 
     /// <summary>

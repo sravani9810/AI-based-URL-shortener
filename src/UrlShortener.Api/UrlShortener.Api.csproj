@@ -4,7 +4,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- UI is embedded in the assembly (see below) so the published binary is fully self-contained. -->
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Embed the single-page UI so it ships inside the executable, not as a loose wwwroot folder. -->
+    <Content Remove="wwwroot\index.html" />
+    <EmbeddedResource Include="wwwroot\index.html" LogicalName="index.html" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />

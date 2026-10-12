@@ -3,6 +3,9 @@ bin/
 obj/
 out/
 
+# Published desktop executables (large; regenerate with scripts/build-executables.sh)
+dist/
+
 # SQLite database files (generated at runtime)
 *.db
 *.db-shm

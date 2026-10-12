@@ -23,6 +23,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Development");
         builder.UseSetting("ConnectionStrings:Default", $"Data Source={_dbPath}");
+        builder.UseSetting("App:OpenBrowser", "false"); // never launch a browser from the test host
 
         builder.ConfigureServices(services =>
         {
